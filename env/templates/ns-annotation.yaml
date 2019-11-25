@@ -1,10 +1,35 @@
 # This hook depends on helm creating the target namespace if it doesn't exist
-# before the hook is called. This is the case on Helm v2.9.1
+# before the hook is called. This is the case on Helm v2
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: ns-annotator
+---
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1beta1
+metadata:
+  name: ns-annotator
+rules:
+  - apiGroups: [""]
+    resources: ["namespaces"]
+    verbs: ["get", "patch"]
+---
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1beta1
+metadata:
+  name: ns-annotator
+subjects:
+  - kind: ServiceAccount
+    name: ns-annotator
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: ns-annotator
+---
 apiVersion: batch/v1
 kind: Job
 metadata:
   name: annotate-ns-{{ .Release.Namespace }}
-  namespace: kube-system
   labels:
     release: {{ .Release.Name }}
     heritage: {{ .Release.Service }}
@@ -25,5 +50,4 @@ spec:
         - {{ .Release.Namespace }}
         - "iam.amazonaws.com/permitted=.*"
       restartPolicy: Never
-      # use tiller service account since it should have permissions to do namespace labeling
-      serviceAccountName: tiller
+      serviceAccountName: ns-annotator

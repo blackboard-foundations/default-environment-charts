@@ -49,5 +49,13 @@ spec:
         - namespace
         - {{ .Release.Namespace }}
         - "iam.amazonaws.com/permitted=.*"
+      - name: labeler
+        image: gcr.io/google_containers/hyperkube:v1.13.10
+        command:
+        - kubectl
+        - label
+        - namespace
+        - {{ .Release.Namespace }}
+        - istio-injection=enabled
       restartPolicy: Never
       serviceAccountName: ns-annotator

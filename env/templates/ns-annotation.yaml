@@ -38,6 +38,9 @@ metadata:
     helm.sh/hook-delete-policy: hook-succeeded,hook-failed,before-hook-creation
 spec:
   template:
+    metadata:
+      annotations:
+        sidecar.istio.io/inject: "false"
     spec:
       containers:
       - name: annotator
@@ -55,6 +58,7 @@ spec:
         - kubectl
         - label
         - namespace
+        - --overwrite
         - {{ .Release.Namespace }}
         - istio-injection=enabled
       restartPolicy: Never
